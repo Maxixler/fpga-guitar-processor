@@ -29,6 +29,13 @@ set_property -dict { PACKAGE_PIN A11 IOSTANDARD LVCMOS33 } [get_ports { AUD_PWM 
 set_property -dict { PACKAGE_PIN D12 IOSTANDARD LVCMOS33 } [get_ports { AUD_SD }];
 
 ## ============================================================================
+## USB-UART Bridge (FT2232HQ)
+## Used for PC communication with Qt control panel (921600 baud)
+## ============================================================================
+set_property -dict { PACKAGE_PIN D4 IOSTANDARD LVCMOS33 } [get_ports { UART_TXD }];
+set_property -dict { PACKAGE_PIN C4 IOSTANDARD LVCMOS33 } [get_ports { UART_RXD }];
+
+## ============================================================================
 ## Slide Switches (Active High)
 ## SW[6:0]  = Effect enables
 ## SW[15:12] = Master Volume

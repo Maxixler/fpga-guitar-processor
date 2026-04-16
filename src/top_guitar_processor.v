@@ -6,6 +6,10 @@
 //   Guitar → Analog Frontend → XADC (12-bit) → DC Block → Effects Chain →
 //   Dithering → Sigma-Delta DAC → PWM Output → Amplifier
 //
+// PC Communication:
+//   UART TX (C4) → USB-UART Bridge → PC Qt App (921600 baud)
+//   UART RX (D4) ← USB-UART Bridge ← PC Qt App (parameter commands)
+//
 // Control:
 //   SW[6:0]  = Effect enables (Noise Gate, Dist, OD, Delay, Rev, Cho, Trem)
 //   SW[15:12]= Master Volume
@@ -42,7 +46,11 @@ module top_guitar_processor (
     output wire [15:0] LED,            // LEDs
     output wire [7:0]  AN,             // 7-segment anodes
     output wire [6:0]  SEG,            // 7-segment segments (CA-CG)
-    output wire        DP              // 7-segment decimal point
+    output wire        DP,             // 7-segment decimal point
+
+    // UART (USB-UART Bridge)
+    output wire        UART_TXD,       // UART transmit to PC
+    input  wire        UART_RXD        // UART receive from PC
 );
 
     //========================================================================
@@ -284,5 +292,78 @@ module top_guitar_processor (
         .SEG            (SEG),
         .DP             (DP)
     );
+
+    //========================================================================
+    // UART Communication (PC ↔ FPGA)
+    //========================================================================
+    wire [7:0] uart_tx_data;
+    wire       uart_tx_valid;
+    wire       uart_tx_ready;
+    wire [7:0] uart_rx_data;
+    wire       uart_rx_valid;
+
+    // UART TX (FPGA → PC)
+    uart_tx u_uart_tx (
+        .clk      (CLK100MHZ),
+        .rst      (rst),
+        .tx_data  (uart_tx_data),
+        .tx_valid (uart_tx_valid),
+        .tx_ready (uart_tx_ready),
+        .tx_out   (UART_TXD)
+    );
+
+    // UART RX (PC → FPGA)
+    uart_rx u_uart_rx (
+        .clk      (CLK100MHZ),
+        .rst      (rst),
+        .rx_in    (UART_RXD),
+        .rx_data  (uart_rx_data),
+        .rx_valid (uart_rx_valid)
+    );
+
+    // Packet Transmitter (sends audio + status to PC)
+    // VU levels scaled to 8-bit for transmission
+    wire [7:0] vu_in_8  = vu_in[23:16];
+    wire [7:0] vu_out_8 = vu_out[23:16];
+
+    uart_packet_tx u_pkt_tx (
+        .clk             (CLK100MHZ),
+        .rst             (rst),
+        .sample_clk      (sample_clk),
+        .audio_in        (filtered_in),
+        .audio_out       (effects_out),
+        .vu_in           (vu_in_8),
+        .vu_out          (vu_out_8),
+        .effect_enables  (effect_enables),
+        .selected_effect (selected_effect),
+        .param1_value    (display_param),
+        .param2_value    (8'd0),
+        .master_volume   (master_vol),
+        .tx_data         (uart_tx_data),
+        .tx_valid        (uart_tx_valid),
+        .tx_ready        (uart_tx_ready)
+    );
+
+    // Command Receiver (receives parameter updates from PC)
+    wire       cmd_valid;
+    wire [7:0] cmd_type;
+    wire [2:0] cmd_effect;
+    wire       cmd_param_idx;
+    wire [7:0] cmd_value;
+
+    uart_cmd_rx u_cmd_rx (
+        .clk           (CLK100MHZ),
+        .rst           (rst),
+        .rx_data       (uart_rx_data),
+        .rx_valid      (uart_rx_valid),
+        .cmd_valid     (cmd_valid),
+        .cmd_type      (cmd_type),
+        .cmd_effect    (cmd_effect),
+        .cmd_param_idx (cmd_param_idx),
+        .cmd_value     (cmd_value)
+    );
+
+    // TODO: Connect cmd outputs to parameter_controller for PC-based control
+    // This allows the Qt app to change parameters remotely
 
 endmodule
