@@ -1,0 +1,91 @@
+# ============================================
+# Vivado / Xilinx FPGA Project .gitignore
+# ============================================
+
+# Vivado generated project files
+*.jou
+*.log
+*.str
+*.mif
+*.xpr.bak
+
+# Vivado project directory (regenerate with Create Project)
+/*.xpr
+/vivado_project/
+/*.cache/
+/*.hw/
+/*.ip_user_files/
+/*.runs/
+/*.sim/
+/*.srcs/constrs_1/
+/*.gen/
+
+# Bitstream and implementation output
+*.bit
+*.bin
+*.mcs
+*.prm
+*.ltx
+
+# IP core output (regenerate from IP Catalog)
+# *.xci files are kept (IP definitions), but generated output is excluded
+*.xdc.bak
+
+# Vivado IP cache and generated files
+**/ip/**/*.veo
+**/ip/**/*.vho
+**/ip/**/simulation/
+**/ip/**/*_stub.v
+**/ip/**/*_stub.vhdl
+**/ip/**/*_sim_netlist.v
+**/ip/**/*_sim_netlist.vhdl
+
+# SDK / Vitis workspace
+*.sdk/
+*.hdf
+*.sysdef
+
+# Synthesis reports (regenerated)
+*.rpt
+*.xpe
+*.rpx
+
+# Timing summary
+*.timing_summary
+
+# Device programming
+*.elf
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Editor temp files
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Python (if any scripts)
+__pycache__/
+*.pyc
+*.pyo
+
+# MATLAB/Octave (filter design scripts)
+*.asv
+*.m~
+
+# Simulation waveform dumps (large files)
+*.vcd
+*.vcd.gz
+*.wlf
+
+# Compiled simulation libraries
+work/
+xsim.dir/
+
+# Misc
+*.tmp
+*.bak
